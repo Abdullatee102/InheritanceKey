@@ -37,13 +37,7 @@ contract InheritanceKeyTest is Test {
         bps[0] = 6000; // 60%
         bps[1] = 4000; // 40%
 
-        uint256 planId = inheritanceKey.createPlan(
-            "Family Estate",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("Family Estate", 30 days, 7 days, addrs, bps);
 
         InheritanceKey.Plan memory plan = inheritanceKey.getPlan(planId);
         assertEq(plan.id, 1);
@@ -53,8 +47,7 @@ contract InheritanceKeyTest is Test {
         assertEq(plan.challengePeriod, 7 days);
         assertEq(uint8(plan.status), uint8(InheritanceKey.PlanStatus.ACTIVE));
 
-        InheritanceKey.Beneficiary[] memory bList = inheritanceKey
-            .getBeneficiaries(planId);
+        InheritanceKey.Beneficiary[] memory bList = inheritanceKey.getBeneficiaries(planId);
         assertEq(bList.length, 2);
         assertEq(bList[0].account, beneficiary1);
         assertEq(bList[0].percentageBps, 6000);
@@ -75,16 +68,8 @@ contract InheritanceKeyTest is Test {
         bps[0] = 5000;
         bps[1] = 4000; // Sum = 9000 (90%) != 100%
 
-        vm.expectRevert(
-            "InheritanceKey: beneficiary allocations must total 100%"
-        );
-        inheritanceKey.createPlan(
-            "Invalid BPS Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        vm.expectRevert("InheritanceKey: beneficiary allocations must total 100%");
+        inheritanceKey.createPlan("Invalid BPS Plan", 30 days, 7 days, addrs, bps);
 
         vm.stopPrank();
     }
@@ -96,13 +81,7 @@ contract InheritanceKeyTest is Test {
         uint256[] memory bps = new uint256[](1);
         bps[0] = 10000;
 
-        uint256 planId = inheritanceKey.createPlan(
-            "BOT Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("BOT Plan", 30 days, 7 days, addrs, bps);
 
         // Deposit 5 BOT
         inheritanceKey.depositBOT{value: 5 ether}(planId);
@@ -125,25 +104,12 @@ contract InheritanceKeyTest is Test {
         uint256[] memory bps = new uint256[](1);
         bps[0] = 10000;
 
-        uint256 planId = inheritanceKey.createPlan(
-            "Token Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("Token Plan", 30 days, 7 days, addrs, bps);
 
         mockToken.approve(address(inheritanceKey), 1000 * 10 ** 18);
-        inheritanceKey.depositERC20(
-            planId,
-            address(mockToken),
-            1000 * 10 ** 18
-        );
+        inheritanceKey.depositERC20(planId, address(mockToken), 1000 * 10 ** 18);
 
-        assertEq(
-            inheritanceKey.planDeposits(planId, address(mockToken)),
-            1000 * 10 ** 18
-        );
+        assertEq(inheritanceKey.planDeposits(planId, address(mockToken)), 1000 * 10 ** 18);
         assertEq(mockToken.balanceOf(address(inheritanceKey)), 1000 * 10 ** 18);
 
         vm.stopPrank();
@@ -156,13 +122,7 @@ contract InheritanceKeyTest is Test {
         uint256[] memory bps = new uint256[](1);
         bps[0] = 10000;
 
-        uint256 planId = inheritanceKey.createPlan(
-            "Checkin Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("Checkin Plan", 30 days, 7 days, addrs, bps);
 
         uint256 initialActivity = inheritanceKey.getPlan(planId).lastActivity;
         vm.warp(block.timestamp + 10 days);
@@ -181,13 +141,7 @@ contract InheritanceKeyTest is Test {
         uint256[] memory bps = new uint256[](1);
         bps[0] = 10000;
 
-        uint256 planId = inheritanceKey.createPlan(
-            "Recovery Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("Recovery Plan", 30 days, 7 days, addrs, bps);
         inheritanceKey.depositBOT{value: 10 ether}(planId);
         vm.stopPrank();
 
@@ -198,26 +152,16 @@ contract InheritanceKeyTest is Test {
         vm.prank(stranger);
         inheritanceKey.triggerSuccession(planId);
 
-        InheritanceKey.Plan memory planAfterTrigger = inheritanceKey.getPlan(
-            planId
-        );
-        assertEq(
-            uint8(planAfterTrigger.status),
-            uint8(InheritanceKey.PlanStatus.TRIGGERED)
-        );
+        InheritanceKey.Plan memory planAfterTrigger = inheritanceKey.getPlan(planId);
+        assertEq(uint8(planAfterTrigger.status), uint8(InheritanceKey.PlanStatus.TRIGGERED));
         assertTrue(inheritanceKey.isChallengeActive(planId));
 
         // Owner recovers within 7 days challenge period
         vm.prank(owner);
         inheritanceKey.recoverPlan(planId);
 
-        InheritanceKey.Plan memory planAfterRecovery = inheritanceKey.getPlan(
-            planId
-        );
-        assertEq(
-            uint8(planAfterRecovery.status),
-            uint8(InheritanceKey.PlanStatus.ACTIVE)
-        );
+        InheritanceKey.Plan memory planAfterRecovery = inheritanceKey.getPlan(planId);
+        assertEq(uint8(planAfterRecovery.status), uint8(InheritanceKey.PlanStatus.ACTIVE));
         assertFalse(inheritanceKey.isChallengeActive(planId));
     }
 
@@ -231,21 +175,11 @@ contract InheritanceKeyTest is Test {
         bps[0] = 6000; // 60%
         bps[1] = 4000; // 40%
 
-        uint256 planId = inheritanceKey.createPlan(
-            "Claim Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("Claim Plan", 30 days, 7 days, addrs, bps);
         inheritanceKey.depositBOT{value: 10 ether}(planId);
 
         mockToken.approve(address(inheritanceKey), 1000 * 10 ** 18);
-        inheritanceKey.depositERC20(
-            planId,
-            address(mockToken),
-            1000 * 10 ** 18
-        );
+        inheritanceKey.depositERC20(planId, address(mockToken), 1000 * 10 ** 18);
         vm.stopPrank();
 
         // Fast forward past inactivity period (30 days)
@@ -288,10 +222,7 @@ contract InheritanceKeyTest is Test {
 
         // Check plan status completed
         InheritanceKey.Plan memory finalPlan = inheritanceKey.getPlan(planId);
-        assertEq(
-            uint8(finalPlan.status),
-            uint8(InheritanceKey.PlanStatus.COMPLETED)
-        );
+        assertEq(uint8(finalPlan.status), uint8(InheritanceKey.PlanStatus.COMPLETED));
     }
 
     function test_DoubleClaim_Reverts() public {
@@ -303,20 +234,10 @@ contract InheritanceKeyTest is Test {
         bps[0] = 5000;
         bps[1] = 5000;
 
-        uint256 planId = inheritanceKey.createPlan(
-            "Multi Beneficiary Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("Multi Beneficiary Plan", 30 days, 7 days, addrs, bps);
         inheritanceKey.depositBOT{value: 10 ether}(planId);
         mockToken.approve(address(inheritanceKey), 1000 * 10 ** 18);
-        inheritanceKey.depositERC20(
-            planId,
-            address(mockToken),
-            1000 * 10 ** 18
-        );
+        inheritanceKey.depositERC20(planId, address(mockToken), 1000 * 10 ** 18);
         vm.stopPrank();
 
         vm.warp(block.timestamp + 38 days);
@@ -341,25 +262,12 @@ contract InheritanceKeyTest is Test {
         uint256[] memory bps = new uint256[](1);
         bps[0] = 10000;
 
-        uint256 planId = inheritanceKey.createPlan(
-            "Doc Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("Doc Plan", 30 days, 7 days, addrs, bps);
 
         bytes32 docHash = keccak256("Encrypted Estate Key");
-        inheritanceKey.addDocumentReference(
-            planId,
-            docHash,
-            "ipfs://Qm123...",
-            "Secret Key Hash",
-            beneficiary1
-        );
+        inheritanceKey.addDocumentReference(planId, docHash, "ipfs://Qm123...", "Secret Key Hash", beneficiary1);
 
-        InheritanceKey.DocumentReference[] memory docs = inheritanceKey
-            .getPlanDocuments(planId);
+        InheritanceKey.DocumentReference[] memory docs = inheritanceKey.getPlanDocuments(planId);
         assertEq(docs.length, 1);
         assertEq(docs[0].docHash, docHash);
         assertEq(docs[0].title, "Secret Key Hash");
@@ -368,10 +276,7 @@ contract InheritanceKeyTest is Test {
         vm.stopPrank();
     }
 
-    function test_Fuzz_ClaimAccountingInvariant(
-        uint96 amount,
-        uint16 bps1
-    ) public {
+    function test_Fuzz_ClaimAccountingInvariant(uint96 amount, uint16 bps1) public {
         vm.assume(amount > 10000 && amount < 1_000_000 ether);
         vm.assume(bps1 > 0 && bps1 < 10000);
 
@@ -388,13 +293,7 @@ contract InheritanceKeyTest is Test {
         bps[0] = bps1;
         bps[1] = bps2;
 
-        uint256 planId = inheritanceKey.createPlan(
-            "Fuzz Plan",
-            30 days,
-            7 days,
-            addrs,
-            bps
-        );
+        uint256 planId = inheritanceKey.createPlan("Fuzz Plan", 30 days, 7 days, addrs, bps);
         inheritanceKey.depositBOT{value: amount}(planId);
         vm.stopPrank();
 
@@ -409,14 +308,8 @@ contract InheritanceKeyTest is Test {
         vm.prank(beneficiary2);
         inheritanceKey.claimInheritance(planId, address(0));
 
-        uint256 totalClaimed = inheritanceKey.planClaimedAmounts(
-            planId,
-            address(0)
-        );
-        uint256 totalDeposited = inheritanceKey.planDeposits(
-            planId,
-            address(0)
-        );
+        uint256 totalClaimed = inheritanceKey.planClaimedAmounts(planId, address(0));
+        uint256 totalDeposited = inheritanceKey.planDeposits(planId, address(0));
 
         // Strict invariant: total claimed <= total deposited
         assertTrue(totalClaimed <= totalDeposited);

@@ -78,8 +78,7 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
     mapping(uint256 => mapping(address => uint256)) public planClaimedAmounts;
 
     // Claim Tracking: planId => beneficiary => tokenAddress => claimed?
-    mapping(uint256 => mapping(address => mapping(address => bool)))
-        public hasClaimed;
+    mapping(uint256 => mapping(address => mapping(address => bool))) public hasClaimed;
 
     // Document References: planId => DocumentReference[]
     mapping(uint256 => DocumentReference[]) internal _planDocuments;
@@ -92,79 +91,31 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
 
     // Events
     event PlanCreated(
-        uint256 indexed planId,
-        address indexed owner,
-        string name,
-        uint256 inactivityPeriod,
-        uint256 challengePeriod
+        uint256 indexed planId, address indexed owner, string name, uint256 inactivityPeriod, uint256 challengePeriod
     );
-    event PlanUpdated(
-        uint256 indexed planId,
-        string name,
-        uint256 inactivityPeriod,
-        uint256 challengePeriod
-    );
-    event BeneficiaryAdded(
-        uint256 indexed planId,
-        address indexed beneficiary,
-        uint256 percentageBps
-    );
+    event PlanUpdated(uint256 indexed planId, string name, uint256 inactivityPeriod, uint256 challengePeriod);
+    event BeneficiaryAdded(uint256 indexed planId, address indexed beneficiary, uint256 percentageBps);
     event BeneficiariesUpdated(uint256 indexed planId, uint256 count);
-    event AssetDeposited(
-        uint256 indexed planId,
-        address indexed token,
-        uint256 amount,
-        address indexed depositor
-    );
-    event AssetWithdrawn(
-        uint256 indexed planId,
-        address indexed token,
-        uint256 amount,
-        address indexed owner
-    );
-    event CheckIn(
-        uint256 indexed planId,
-        address indexed owner,
-        uint256 timestamp
-    );
+    event AssetDeposited(uint256 indexed planId, address indexed token, uint256 amount, address indexed depositor);
+    event AssetWithdrawn(uint256 indexed planId, address indexed token, uint256 amount, address indexed owner);
+    event CheckIn(uint256 indexed planId, address indexed owner, uint256 timestamp);
     event SuccessionTriggered(
-        uint256 indexed planId,
-        address indexed triggerer,
-        uint256 triggerTimestamp,
-        uint256 challengeExpiry
+        uint256 indexed planId, address indexed triggerer, uint256 triggerTimestamp, uint256 challengeExpiry
     );
-    event PlanRecovered(
-        uint256 indexed planId,
-        address indexed owner,
-        uint256 timestamp
-    );
+    event PlanRecovered(uint256 indexed planId, address indexed owner, uint256 timestamp);
     event InheritanceClaimed(
-        uint256 indexed planId,
-        address indexed beneficiary,
-        address indexed token,
-        uint256 amount
+        uint256 indexed planId, address indexed beneficiary, address indexed token, uint256 amount
     );
     event PlanCompleted(uint256 indexed planId);
     event PlanCancelled(uint256 indexed planId, address indexed owner);
-    event DocumentAdded(
-        uint256 indexed planId,
-        bytes32 docHash,
-        string title,
-        address indexed beneficiary
-    );
+    event DocumentAdded(uint256 indexed planId, bytes32 docHash, string title, address indexed beneficiary);
     event ProtocolLimitsUpdated(
-        uint256 minInactivityPeriod,
-        uint256 maxInactivityPeriod,
-        uint256 minChallengePeriod,
-        uint256 maxChallengePeriod
+        uint256 minInactivityPeriod, uint256 maxInactivityPeriod, uint256 minChallengePeriod, uint256 maxChallengePeriod
     );
 
     // Modifiers
     modifier onlyPlanOwner(uint256 planId) {
-        require(
-            plans[planId].owner == msg.sender,
-            "InheritanceKey: caller is not plan owner"
-        );
+        require(plans[planId].owner == msg.sender, "InheritanceKey: caller is not plan owner");
         _;
     }
 
@@ -190,19 +141,14 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
     ) external whenNotPaused returns (uint256 planId) {
         require(bytes(name).length > 0, "InheritanceKey: empty plan name");
         require(
-            inactivityPeriod >= minInactivityPeriod &&
-                inactivityPeriod <= maxInactivityPeriod,
+            inactivityPeriod >= minInactivityPeriod && inactivityPeriod <= maxInactivityPeriod,
             "InheritanceKey: invalid inactivity period"
         );
         require(
-            challengePeriod >= minChallengePeriod &&
-                challengePeriod <= maxChallengePeriod,
+            challengePeriod >= minChallengePeriod && challengePeriod <= maxChallengePeriod,
             "InheritanceKey: invalid challenge period"
         );
-        require(
-            beneficiaryAddrs.length == beneficiaryBps.length,
-            "InheritanceKey: beneficiary array mismatch"
-        );
+        require(beneficiaryAddrs.length == beneficiaryBps.length, "InheritanceKey: beneficiary array mismatch");
 
         planId = nextPlanId++;
 
@@ -223,20 +169,12 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
             _setBeneficiaries(planId, beneficiaryAddrs, beneficiaryBps);
         }
 
-        emit PlanCreated(
-            planId,
-            msg.sender,
-            name,
-            inactivityPeriod,
-            challengePeriod
-        );
+        emit PlanCreated(planId, msg.sender, name, inactivityPeriod, challengePeriod);
     }
 
-    function _setBeneficiaries(
-        uint256 planId,
-        address[] memory beneficiaryAddrs,
-        uint256[] memory beneficiaryBps
-    ) internal {
+    function _setBeneficiaries(uint256 planId, address[] memory beneficiaryAddrs, uint256[] memory beneficiaryBps)
+        internal
+    {
         delete _planBeneficiaries[planId];
         uint256 totalBps = 0;
 
@@ -244,29 +182,15 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
             address bAddr = beneficiaryAddrs[i];
             uint256 bps = beneficiaryBps[i];
 
-            require(
-                bAddr != address(0),
-                "InheritanceKey: zero address beneficiary"
-            );
-            require(
-                bAddr != plans[planId].owner,
-                "InheritanceKey: owner cannot be beneficiary"
-            );
-            require(
-                bps > 0 && bps <= 10000,
-                "InheritanceKey: invalid percentage BPS"
-            );
+            require(bAddr != address(0), "InheritanceKey: zero address beneficiary");
+            require(bAddr != plans[planId].owner, "InheritanceKey: owner cannot be beneficiary");
+            require(bps > 0 && bps <= 10000, "InheritanceKey: invalid percentage BPS");
 
             for (uint256 j = 0; j < i; j++) {
-                require(
-                    beneficiaryAddrs[j] != bAddr,
-                    "InheritanceKey: duplicate beneficiary"
-                );
+                require(beneficiaryAddrs[j] != bAddr, "InheritanceKey: duplicate beneficiary");
             }
 
-            _planBeneficiaries[planId].push(
-                Beneficiary({account: bAddr, percentageBps: bps})
-            );
+            _planBeneficiaries[planId].push(Beneficiary({account: bAddr, percentageBps: bps}));
             totalBps += bps;
 
             if (!_isBeneficiaryIndexed[bAddr][planId]) {
@@ -275,33 +199,25 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
             }
         }
 
-        require(
-            totalBps == 10000,
-            "InheritanceKey: beneficiary allocations must total 100%"
-        );
+        require(totalBps == 10000, "InheritanceKey: beneficiary allocations must total 100%");
         emit BeneficiariesUpdated(planId, beneficiaryAddrs.length);
     }
 
-    function updatePlanSettings(
-        uint256 planId,
-        string memory name,
-        uint256 inactivityPeriod,
-        uint256 challengePeriod
-    ) external planExists(planId) onlyPlanOwner(planId) whenNotPaused {
+    function updatePlanSettings(uint256 planId, string memory name, uint256 inactivityPeriod, uint256 challengePeriod)
+        external
+        planExists(planId)
+        onlyPlanOwner(planId)
+        whenNotPaused
+    {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.ACTIVE,
-            "InheritanceKey: plan not active"
-        );
+        require(plan.status == PlanStatus.ACTIVE, "InheritanceKey: plan not active");
         require(bytes(name).length > 0, "InheritanceKey: empty plan name");
         require(
-            inactivityPeriod >= minInactivityPeriod &&
-                inactivityPeriod <= maxInactivityPeriod,
+            inactivityPeriod >= minInactivityPeriod && inactivityPeriod <= maxInactivityPeriod,
             "InheritanceKey: invalid inactivity period"
         );
         require(
-            challengePeriod >= minChallengePeriod &&
-                challengePeriod <= maxChallengePeriod,
+            challengePeriod >= minChallengePeriod && challengePeriod <= maxChallengePeriod,
             "InheritanceKey: invalid challenge period"
         );
 
@@ -314,34 +230,24 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         emit CheckIn(planId, msg.sender, block.timestamp);
     }
 
-    function updateBeneficiaries(
-        uint256 planId,
-        address[] memory beneficiaryAddrs,
-        uint256[] memory beneficiaryBps
-    ) external planExists(planId) onlyPlanOwner(planId) whenNotPaused {
+    function updateBeneficiaries(uint256 planId, address[] memory beneficiaryAddrs, uint256[] memory beneficiaryBps)
+        external
+        planExists(planId)
+        onlyPlanOwner(planId)
+        whenNotPaused
+    {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.ACTIVE,
-            "InheritanceKey: plan not active"
-        );
-        require(
-            beneficiaryAddrs.length == beneficiaryBps.length,
-            "InheritanceKey: array mismatch"
-        );
+        require(plan.status == PlanStatus.ACTIVE, "InheritanceKey: plan not active");
+        require(beneficiaryAddrs.length == beneficiaryBps.length, "InheritanceKey: array mismatch");
 
         _setBeneficiaries(planId, beneficiaryAddrs, beneficiaryBps);
         plan.lastActivity = block.timestamp;
         emit CheckIn(planId, msg.sender, block.timestamp);
     }
 
-    function depositBOT(
-        uint256 planId
-    ) external payable nonReentrant planExists(planId) whenNotPaused {
+    function depositBOT(uint256 planId) external payable nonReentrant planExists(planId) whenNotPaused {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.ACTIVE,
-            "InheritanceKey: plan not active"
-        );
+        require(plan.status == PlanStatus.ACTIVE, "InheritanceKey: plan not active");
         require(msg.value > 0, "InheritanceKey: zero deposit amount");
 
         address token = address(0);
@@ -360,26 +266,20 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         emit AssetDeposited(planId, token, msg.value, msg.sender);
     }
 
-    function depositERC20(
-        uint256 planId,
-        address token,
-        uint256 amount
-    ) external nonReentrant planExists(planId) whenNotPaused {
+    function depositERC20(uint256 planId, address token, uint256 amount)
+        external
+        nonReentrant
+        planExists(planId)
+        whenNotPaused
+    {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.ACTIVE,
-            "InheritanceKey: plan not active"
-        );
-        require(
-            token != address(0),
-            "InheritanceKey: invalid ERC20 token address"
-        );
+        require(plan.status == PlanStatus.ACTIVE, "InheritanceKey: plan not active");
+        require(token != address(0), "InheritanceKey: invalid ERC20 token address");
         require(amount > 0, "InheritanceKey: zero deposit amount");
 
         uint256 balBefore = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        uint256 actualReceived = IERC20(token).balanceOf(address(this)) -
-            balBefore;
+        uint256 actualReceived = IERC20(token).balanceOf(address(this)) - balBefore;
         require(actualReceived > 0, "InheritanceKey: no tokens received");
 
         if (!_isTokenInPlan[planId][token]) {
@@ -397,11 +297,7 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         emit AssetDeposited(planId, token, actualReceived, msg.sender);
     }
 
-    function withdrawAsset(
-        uint256 planId,
-        address token,
-        uint256 amount
-    )
+    function withdrawAsset(uint256 planId, address token, uint256 amount)
         external
         nonReentrant
         planExists(planId)
@@ -409,15 +305,9 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         whenNotPaused
     {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.ACTIVE,
-            "InheritanceKey: plan not active"
-        );
+        require(plan.status == PlanStatus.ACTIVE, "InheritanceKey: plan not active");
         require(amount > 0, "InheritanceKey: zero amount");
-        require(
-            planDeposits[planId][token] >= amount,
-            "InheritanceKey: insufficient plan balance"
-        );
+        require(planDeposits[planId][token] >= amount, "InheritanceKey: insufficient plan balance");
 
         planDeposits[planId][token] -= amount;
         plan.lastActivity = block.timestamp;
@@ -426,20 +316,17 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         emit CheckIn(planId, msg.sender, block.timestamp);
 
         if (token == address(0)) {
-            (bool success, ) = payable(msg.sender).call{value: amount}("");
+            (bool success,) = payable(msg.sender).call{value: amount}("");
             require(success, "InheritanceKey: BOT transfer failed");
         } else {
             IERC20(token).safeTransfer(msg.sender, amount);
         }
     }
 
-    function checkIn(
-        uint256 planId
-    ) external planExists(planId) onlyPlanOwner(planId) {
+    function checkIn(uint256 planId) external planExists(planId) onlyPlanOwner(planId) {
         Plan storage plan = plans[planId];
         require(
-            plan.status == PlanStatus.ACTIVE ||
-                plan.status == PlanStatus.TRIGGERED,
+            plan.status == PlanStatus.ACTIVE || plan.status == PlanStatus.TRIGGERED,
             "InheritanceKey: plan cannot check-in from current status"
         );
 
@@ -453,14 +340,9 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         emit CheckIn(planId, msg.sender, block.timestamp);
     }
 
-    function triggerSuccession(
-        uint256 planId
-    ) external planExists(planId) whenNotPaused {
+    function triggerSuccession(uint256 planId) external planExists(planId) whenNotPaused {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.ACTIVE,
-            "InheritanceKey: plan is not active"
-        );
+        require(plan.status == PlanStatus.ACTIVE, "InheritanceKey: plan is not active");
         require(
             block.timestamp >= plan.lastActivity + plan.inactivityPeriod,
             "InheritanceKey: inactivity period has not elapsed"
@@ -469,22 +351,12 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         plan.status = PlanStatus.TRIGGERED;
         plan.triggerTimestamp = block.timestamp;
 
-        emit SuccessionTriggered(
-            planId,
-            msg.sender,
-            block.timestamp,
-            block.timestamp + plan.challengePeriod
-        );
+        emit SuccessionTriggered(planId, msg.sender, block.timestamp, block.timestamp + plan.challengePeriod);
     }
 
-    function recoverPlan(
-        uint256 planId
-    ) external planExists(planId) onlyPlanOwner(planId) {
+    function recoverPlan(uint256 planId) external planExists(planId) onlyPlanOwner(planId) {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.TRIGGERED,
-            "InheritanceKey: plan is not under challenge"
-        );
+        require(plan.status == PlanStatus.TRIGGERED, "InheritanceKey: plan is not under challenge");
 
         plan.status = PlanStatus.ACTIVE;
         plan.triggerTimestamp = 0;
@@ -494,10 +366,7 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         emit CheckIn(planId, msg.sender, block.timestamp);
     }
 
-    function claimInheritance(
-        uint256 planId,
-        address token
-    ) external nonReentrant planExists(planId) whenNotPaused {
+    function claimInheritance(uint256 planId, address token) external nonReentrant planExists(planId) whenNotPaused {
         Plan storage plan = plans[planId];
 
         if (plan.status == PlanStatus.TRIGGERED) {
@@ -508,27 +377,15 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
             plan.status = PlanStatus.READY_FOR_CLAIM;
         }
 
-        require(
-            plan.status == PlanStatus.READY_FOR_CLAIM,
-            "InheritanceKey: plan is not ready for claim"
-        );
+        require(plan.status == PlanStatus.READY_FOR_CLAIM, "InheritanceKey: plan is not ready for claim");
 
-        require(
-            !hasClaimed[planId][msg.sender][token],
-            "InheritanceKey: asset already claimed by caller"
-        );
+        require(!hasClaimed[planId][msg.sender][token], "InheritanceKey: asset already claimed by caller");
 
         uint256 beneficiaryBps = _getBeneficiaryBps(planId, msg.sender);
-        require(
-            beneficiaryBps > 0,
-            "InheritanceKey: caller is not a designated beneficiary"
-        );
+        require(beneficiaryBps > 0, "InheritanceKey: caller is not a designated beneficiary");
 
         uint256 totalDeposited = planDeposits[planId][token];
-        require(
-            totalDeposited > 0,
-            "InheritanceKey: no deposited balance for token"
-        );
+        require(totalDeposited > 0, "InheritanceKey: no deposited balance for token");
 
         uint256 claimAmount = (totalDeposited * beneficiaryBps) / 10000;
         require(claimAmount > 0, "InheritanceKey: zero claimable amount");
@@ -540,27 +397,16 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         _checkPlanCompletion(planId);
 
         if (token == address(0)) {
-            (bool success, ) = payable(msg.sender).call{value: claimAmount}("");
+            (bool success,) = payable(msg.sender).call{value: claimAmount}("");
             require(success, "InheritanceKey: BOT claim transfer failed");
         } else {
             IERC20(token).safeTransfer(msg.sender, claimAmount);
         }
     }
 
-    function cancelPlan(
-        uint256 planId
-    )
-        external
-        nonReentrant
-        planExists(planId)
-        onlyPlanOwner(planId)
-        whenNotPaused
-    {
+    function cancelPlan(uint256 planId) external nonReentrant planExists(planId) onlyPlanOwner(planId) whenNotPaused {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.ACTIVE,
-            "InheritanceKey: plan not active"
-        );
+        require(plan.status == PlanStatus.ACTIVE, "InheritanceKey: plan not active");
 
         plan.status = PlanStatus.CANCELLED;
         emit PlanCancelled(planId, msg.sender);
@@ -576,9 +422,7 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
                 planDeposits[planId][token] = totalCl;
                 emit AssetWithdrawn(planId, token, remaining, msg.sender);
                 if (token == address(0)) {
-                    (bool success, ) = payable(msg.sender).call{
-                        value: remaining
-                    }("");
+                    (bool success,) = payable(msg.sender).call{value: remaining}("");
                     require(success, "InheritanceKey: refund transfer failed");
                 } else {
                     IERC20(token).safeTransfer(msg.sender, remaining);
@@ -595,20 +439,13 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         address beneficiary
     ) external planExists(planId) onlyPlanOwner(planId) whenNotPaused {
         Plan storage plan = plans[planId];
-        require(
-            plan.status == PlanStatus.ACTIVE,
-            "InheritanceKey: plan not active"
-        );
+        require(plan.status == PlanStatus.ACTIVE, "InheritanceKey: plan not active");
         require(docHash != bytes32(0), "InheritanceKey: invalid doc hash");
         require(bytes(title).length > 0, "InheritanceKey: empty title");
 
         _planDocuments[planId].push(
             DocumentReference({
-                docHash: docHash,
-                uri: uri,
-                title: title,
-                beneficiary: beneficiary,
-                createdAt: block.timestamp
+                docHash: docHash, uri: uri, title: title, beneficiary: beneficiary, createdAt: block.timestamp
             })
         );
 
@@ -630,33 +467,19 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         uint256 _minChallenge,
         uint256 _maxChallenge
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(
-            _minInactivity <= _maxInactivity,
-            "InheritanceKey: invalid inactivity bounds"
-        );
-        require(
-            _minChallenge <= _maxChallenge,
-            "InheritanceKey: invalid challenge bounds"
-        );
+        require(_minInactivity <= _maxInactivity, "InheritanceKey: invalid inactivity bounds");
+        require(_minChallenge <= _maxChallenge, "InheritanceKey: invalid challenge bounds");
 
         minInactivityPeriod = _minInactivity;
         maxInactivityPeriod = _maxInactivity;
         minChallengePeriod = _minChallenge;
         maxChallengePeriod = _maxChallenge;
 
-        emit ProtocolLimitsUpdated(
-            _minInactivity,
-            _maxInactivity,
-            _minChallenge,
-            _maxChallenge
-        );
+        emit ProtocolLimitsUpdated(_minInactivity, _maxInactivity, _minChallenge, _maxChallenge);
     }
 
     // Internal Helpers
-    function _getBeneficiaryBps(
-        uint256 planId,
-        address account
-    ) internal view returns (uint256) {
+    function _getBeneficiaryBps(uint256 planId, address account) internal view returns (uint256) {
         Beneficiary[] memory bList = _planBeneficiaries[planId];
         for (uint256 i = 0; i < bList.length; i++) {
             if (bList[i].account == account) {
@@ -690,47 +513,36 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
     }
 
     // View Functions
-    function getPlan(
-        uint256 planId
-    ) external view planExists(planId) returns (Plan memory) {
+    function getPlan(uint256 planId) external view planExists(planId) returns (Plan memory) {
         return plans[planId];
     }
 
-    function getBeneficiaries(
-        uint256 planId
-    ) external view planExists(planId) returns (Beneficiary[] memory) {
+    function getBeneficiaries(uint256 planId) external view planExists(planId) returns (Beneficiary[] memory) {
         return _planBeneficiaries[planId];
     }
 
-    function getPlanAssetTokens(
-        uint256 planId
-    ) external view planExists(planId) returns (address[] memory) {
+    function getPlanAssetTokens(uint256 planId) external view planExists(planId) returns (address[] memory) {
         return _planAssetTokens[planId];
     }
 
-    function getPlanDocuments(
-        uint256 planId
-    ) external view planExists(planId) returns (DocumentReference[] memory) {
+    function getPlanDocuments(uint256 planId) external view planExists(planId) returns (DocumentReference[] memory) {
         return _planDocuments[planId];
     }
 
-    function getUserPlans(
-        address user
-    ) external view returns (uint256[] memory) {
+    function getUserPlans(address user) external view returns (uint256[] memory) {
         return _ownerPlans[user];
     }
 
-    function getUserBeneficiaryPlans(
-        address user
-    ) external view returns (uint256[] memory) {
+    function getUserBeneficiaryPlans(address user) external view returns (uint256[] memory) {
         return _beneficiaryPlans[user];
     }
 
-    function getClaimableAmount(
-        uint256 planId,
-        address beneficiary,
-        address token
-    ) external view planExists(planId) returns (uint256) {
+    function getClaimableAmount(uint256 planId, address beneficiary, address token)
+        external
+        view
+        planExists(planId)
+        returns (uint256)
+    {
         if (hasClaimed[planId][beneficiary][token]) return 0;
         uint256 bps = _getBeneficiaryBps(planId, beneficiary);
         if (bps == 0) return 0;
@@ -738,34 +550,22 @@ contract InheritanceKey is ReentrancyGuard, Pausable, AccessControl {
         return (totalDep * bps) / 10000;
     }
 
-    function isSuccessionTriggerable(
-        uint256 planId
-    ) external view planExists(planId) returns (bool) {
+    function isSuccessionTriggerable(uint256 planId) external view planExists(planId) returns (bool) {
         Plan memory plan = plans[planId];
-        return (plan.status == PlanStatus.ACTIVE &&
-            block.timestamp >= plan.lastActivity + plan.inactivityPeriod);
+        return (plan.status == PlanStatus.ACTIVE && block.timestamp >= plan.lastActivity + plan.inactivityPeriod);
     }
 
-    function isChallengeActive(
-        uint256 planId
-    ) external view planExists(planId) returns (bool) {
+    function isChallengeActive(uint256 planId) external view planExists(planId) returns (bool) {
         Plan memory plan = plans[planId];
-        return (plan.status == PlanStatus.TRIGGERED &&
-            block.timestamp < plan.triggerTimestamp + plan.challengePeriod);
+        return (plan.status == PlanStatus.TRIGGERED && block.timestamp < plan.triggerTimestamp + plan.challengePeriod);
     }
 
-    function isClaimable(
-        uint256 planId,
-        address beneficiary
-    ) external view planExists(planId) returns (bool) {
+    function isClaimable(uint256 planId, address beneficiary) external view planExists(planId) returns (bool) {
         Plan memory plan = plans[planId];
         if (_getBeneficiaryBps(planId, beneficiary) == 0) return false;
 
         if (plan.status == PlanStatus.READY_FOR_CLAIM) return true;
-        if (
-            plan.status == PlanStatus.TRIGGERED &&
-            block.timestamp >= plan.triggerTimestamp + plan.challengePeriod
-        ) {
+        if (plan.status == PlanStatus.TRIGGERED && block.timestamp >= plan.triggerTimestamp + plan.challengePeriod) {
             return true;
         }
         return false;
