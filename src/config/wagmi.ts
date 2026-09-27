@@ -33,6 +33,8 @@ export const wagmiAdapter = new WagmiAdapter({
 
 export const wagmiConfig = wagmiAdapter.wagmiConfig as any;
 
+const appUrl = import.meta.env.VITE_APP_URL || 'https://inheritance-key.vercel.app';
+
 // Initialize Reown AppKit Modal
 createAppKit({
   adapters: [wagmiAdapter],
@@ -41,8 +43,8 @@ createAppKit({
   metadata: {
     name: 'InheritanceKey',
     description: 'Programmable Digital Ownership Succession Protocol',
-    url: 'https://inheritancekey.bohr.life',
-    icons: ['https://inheritancekey.bohr.life/key-logo.svg'],
+    url: appUrl,
+    icons: [`${appUrl}/key-logo.svg`],
   },
   themeMode: 'dark',
   themeVariables: {
@@ -50,4 +52,3 @@ createAppKit({
     '--w3m-border-radius-master': '8px',
   },
 });
-

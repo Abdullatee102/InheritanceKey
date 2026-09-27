@@ -36,9 +36,10 @@ Beneficiary Claims Assigned Asset directly from Smart Contract
 
 ## 🏗️ Architecture & Deployment Overview
 
+- **Live Production Application**: [https://inheritance-key.vercel.app/](https://inheritance-key.vercel.app/)
 - **Network**: Bohr Testnet (Chain ID: `968`)
 - **RPC Endpoint**: `https://rpc.bohr.life`
-- **Block Explorer**: `https://scan.bohr.life`
+- **Block Explorer**: [Bohr Scan Contract View](https://scan.bohr.life/address/0x825d966777D71b1E4987284c1551fd928dE27ff4)
 - **Deployed Contract**: `0x825d966777D71b1E4987284c1551fd928dE27ff4`
 
 ### Unified Single-Contract Model
@@ -63,8 +64,8 @@ No separate tokens, payment vaults, or external pool dependencies exist.
 - **`ACTIVE` (0)**: Owner controls plan, deposits/withdraws assets, updates beneficiaries, and checks in.
 - **`TRIGGERED` (1)**: Inactivity period elapsed; succession triggered. Challenge window timer active.
 - **`READY_FOR_CLAIM` (2)**: Challenge period expired without owner recovery. Claims open for beneficiaries.
-- **`COMPLETED` (3)**: All beneficiary allocations claimed.
-- **`CANCELLED` (4)**: Plan deactivated by owner; un-claimed balances returned.
+- **`CANCELLED` (3)**: Plan deactivated by owner; un-claimed balances returned.
+- **`COMPLETED` (4)**: All beneficiary allocations claimed.
 
 ---
 
